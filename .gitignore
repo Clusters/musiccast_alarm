@@ -1,0 +1,4 @@
+.idea/
+googleCalendar/credentials.json
+googleCalendar/token.pickle
+googleCalendar/__pycache__/
