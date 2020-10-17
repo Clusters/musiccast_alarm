@@ -2,3 +2,5 @@
 googleCalendar/credentials.json
 googleCalendar/token.pickle
 googleCalendar/__pycache__/
+config/config.json
+libs/__pycache__/

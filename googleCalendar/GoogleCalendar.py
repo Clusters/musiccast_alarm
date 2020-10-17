@@ -1,9 +1,11 @@
 import datetime
 import pickle
 import os.path
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build # sudo pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+
+from libs.helpers import get_config
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -11,6 +13,8 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
 class GoogleCalendar:
+    config = get_config()
+
     """Implements the GoogleCalendar API and authenticates with my personal Google Calendar"""
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -53,13 +57,21 @@ class GoogleCalendar:
 
         :return: True if today is a holiday, otherwise false
         """
-        events_result = self.service.events().list(
-            calendarId='5ucjlvbj67kgl4ds025d92r8ik@group.calendar.google.com',  # calendar "Arbeit Arbeit"
-            timeMin=self.now,
-            timeMax=self.midnight,
-            q="urlaub",
-            maxResults=10
-        ).execute()
+        if self.config["vacation_keyword"] is not None:
+            events_result = self.service.events().list(
+                calendarId=self.config["vacation_calendar_id"],  # calendar "Arbeit Arbeit"
+                timeMin=self.now,
+                timeMax=self.midnight,
+                q=self.config["vacation_keyword"],
+                maxResults=10
+            ).execute()
+        else:
+            events_result = self.service.events().list(
+                calendarId=self.config["vacation_calendar_id"],  # calendar "Arbeit Arbeit"
+                timeMin=self.now,
+                timeMax=self.midnight,
+                maxResults=10
+            ).execute()
 
         today_is_holiday = events_result.get('items', []).__len__() > 0
 
@@ -75,12 +87,24 @@ class GoogleCalendar:
 
         :return: True if today is a holiday, otherwise false
         """
-        events_result = self.service.events().list(
-            calendarId='a40k7ecldau44b4j5fjkhpnpbs@group.calendar.google.com',  # calendar "Gesetzliche Feiertage"
-            timeMin=self.now,
-            timeMax=self.midnight,
-            maxResults=10
-        ).execute()
+        if self.config["holiday_calender_id"] is None:
+            return False
+        
+        if self.config["holiday_keyword"] is not None:
+            events_result = self.service.events().list(
+                calendarId=self.config["holiday_calender_id"],  # calendar "Gesetzliche Feiertage"
+                timeMin=self.now,
+                timeMax=self.midnight,
+                q=self.config["holiday_keyword"],
+                maxResults=10
+            ).execute()
+        else:
+            events_result = self.service.events().list(
+                calendarId=self.config["holiday_calender_id"],  # calendar "Gesetzliche Feiertage"
+                timeMin=self.now,
+                timeMax=self.midnight,
+                maxResults=10
+            ).execute()
 
         today_is_holiday = events_result.get('items', []).__len__() > 0
 
